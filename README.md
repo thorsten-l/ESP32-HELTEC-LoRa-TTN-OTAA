@@ -4,7 +4,7 @@ Sample LoRaWAN code for *HELTEC WiFi LoRa V2* and *V3* boards using PlatformIO.
 
 ## TTN config data
 
-After power on or hard reset (not after recovering from deep sleep) the board prints out on ther serial line: 
+After power on or hard reset (not after recovering from deep sleep) the board prints out on the serial line: 
 
 ```
 LoRaWAN_APP Jan 15 2025 09:13:01
