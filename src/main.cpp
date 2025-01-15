@@ -50,9 +50,9 @@ They are permanently stored in the device's non-volatile memory.
 void prepareTxFrame(uint8_t port)
 {
   // e.g. warmup delay for the sensor
-  if ( loRaWANHander.getSendDelay() > 0 )
+  if ( loRaWANHandler.getSendDelay() > 0 )
   {
-    delay(loRaWANHander.getSendDelay());
+    delay(loRaWANHandler.getSendDelay());
   }
 
   appDataSize = 4;
@@ -70,7 +70,7 @@ void prepareTxFrame(uint8_t port)
  */
 void setup()
 {
-  loRaWANHander.setup();
+  loRaWANHandler.setup();
 }
 
 /**
@@ -82,5 +82,5 @@ void setup()
  */
 void loop()
 {
-  loRaWANHander.loop();
+  loRaWANHandler.loop();
 }

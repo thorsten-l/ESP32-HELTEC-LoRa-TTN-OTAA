@@ -58,5 +58,5 @@ class LoRaWANHandler
     void setSendDelay(uint32_t _sendDelay);
 };
 
-extern LoRaWANHandler loRaWANHander;
+extern LoRaWANHandler loRaWANHandler;
 

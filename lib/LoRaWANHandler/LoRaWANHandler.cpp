@@ -33,7 +33,7 @@
 
 extern SSD1306Wire display;
 
-LoRaWANHandler loRaWANHander;
+LoRaWANHandler loRaWANHandler;
 
 // LORAWAN Settings /////////////////////////////////////////////////////////
 
@@ -90,10 +90,10 @@ void downLinkDataHandle(McpsIndication_t *mcpsIndication)
     switch (command)
     {
     case 0x01:
-      loRaWANHander.setSleepTime(value);
+      loRaWANHandler.setSleepTime(value);
       break;
     case 0x02:
-      loRaWANHander.setSendDelay(value);
+      loRaWANHandler.setSendDelay(value);
       break;
     default:
       Serial.println("Error: Unknown command");
