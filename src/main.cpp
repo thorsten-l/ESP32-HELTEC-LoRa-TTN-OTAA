@@ -21,8 +21,11 @@
 Schedule downlink (FPort 1)
 
 Payload Type: Bytes
-  Byte 0: 0x5A (magic number)
-  Byte 1: Command
+  Byte 0: 0x5A (magic number) 
+   - Why 0x5A? 0x5A is a nice binary number, '0101 1010', 
+     and it's easy to recognize.
+
+  Byte 1: Command 
   Byte 2-5: Value
 
 Commands:
