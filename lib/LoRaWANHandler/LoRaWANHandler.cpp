@@ -121,7 +121,7 @@ void LoRaWANHandler::initConfig(bool showConfig)
   preferences.begin(PREFS_NAMESPACE, false);
   uint32_t magic = preferences.getUInt(PREFS_MAGIC, 0l);
 
-  if (magic != PREFS_MAGIC_VALUE+1)
+  if (magic != PREFS_MAGIC_VALUE)
   {
     magic = PREFS_MAGIC_VALUE;
     appTxDutyCycle = PREFS_SLEEPTIME_DEFAULT_VALUE;
