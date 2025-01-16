@@ -24,7 +24,7 @@
 #define PREFS_MAGIC "magic"
 #define PREFS_MAGIC_VALUE 0x19660304
 #define PREFS_SLEEPTIME "sleeptime"
-#define PREFS_SLEEPTIME_DEFAULT_VALUE 60000
+#define PREFS_SLEEPTIME_DEFAULT_VALUE 1200000
 #define PREFS_SEND_DELAY "senddelay"
 #define PREFS_SEND_DELAY_DEFAULT_VALUE 0
 #define PREFS_APP_EUI "appEui"
@@ -121,20 +121,34 @@ void LoRaWANHandler::initConfig(bool showConfig)
   preferences.begin(PREFS_NAMESPACE, false);
   uint32_t magic = preferences.getUInt(PREFS_MAGIC, 0l);
 
-  if (magic != PREFS_MAGIC_VALUE)
+  if (magic != PREFS_MAGIC_VALUE+1)
   {
     magic = PREFS_MAGIC_VALUE;
     appTxDutyCycle = PREFS_SLEEPTIME_DEFAULT_VALUE;
     sendDelay = PREFS_SLEEPTIME_DEFAULT_VALUE;
 
+#ifdef CREATE_DEV_EUI_RANDOM
     for (int i = 0; i < 8; i++)
     {
       devEui[i] = esp_random() & 0xFF;
     }
+#endif 
+
+#ifdef CREATE_DEV_EUI_CHIPID
+    uint64_t chipId = ESP.getEfuseMac();
+    for (int i = 0; i < 8; i++)
+    {
+      devEui[i] = *(((uint8_t *)&chipId) + (7-i)) & 0xFF;
+    }
+#endif
+    devEui[0] = (devEui[0] & ~1) | 2;
+
     for (int i = 0; i < 8; i++)
     {
       appEui[i] = esp_random() & 0xFF;
     }
+    appEui[0] = (appEui[0] & ~1) | 2;
+
     for (int i = 0; i < 16; i++)
     {
       appKey[i] = esp_random() & 0xFF;
@@ -161,9 +175,9 @@ void LoRaWANHandler::initConfig(bool showConfig)
     Serial.println("AppConfig loaded.");
     printf("\nMagic: %08x\n", magic);
     printf("Sleeptime: %dms\n\n", appTxDutyCycle);
-    printHex((char *)"AppEUI", appEui, 8);
-    printHex((char *)"DevEUI", devEui, 8);
-    printHex((char *)"AppKey", appKey, 16);
+    printHex((char *)"AppEUI/JoinEUI", appEui, 8);
+    printHex((char *)"        DevEUI", devEui, 8);
+    printHex((char *)"        AppKey", appKey, 16);
     Serial.println();
   }
 }
