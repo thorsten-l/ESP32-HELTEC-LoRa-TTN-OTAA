@@ -20,7 +20,7 @@
 #define ADC_Ctrl GPIO_NUM_37
 #define ADC_Input GPIO_NUM_1
 #define ADC_active HIGH
-#define ADC_voltage_divider 0.23648373
+#define ADC_voltage_divider 0.315424496783643
 #endif
 
 #ifdef HELTEC_WIFI_LORA_32_V2
@@ -37,7 +37,13 @@ void BatteryHandler::setup()
   pinMode(ADC_Ctrl, OUTPUT);
   pinMode(ADC_Input, ANALOG);
   analogSetClockDiv(1);
+
+  #ifdef HELTEC_WIFI_LORA_32_V3
+  analogSetAttenuation(ADC_0db);
+  #else
   analogSetAttenuation(ADC_2_5db);
+  #endif
+
   adcAttachPin(ADC_Input);
   digitalWrite(ADC_Ctrl, ADC_active);
 }
