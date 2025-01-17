@@ -15,6 +15,7 @@
  */
 #include <Arduino.h>
 #include <LoRaWANHandler.hpp>
+#include <BatteryHandler.hpp>
 
 /*
 
@@ -55,8 +56,11 @@ void prepareTxFrame(uint8_t port)
   // e.g. warmup delay for the sensor
   if ( loRaWANHandler.getSendDelay() > 0 )
   {
+    Serial.printf("Send delay: %dms\n", loRaWANHandler.getSendDelay());
     delay(loRaWANHandler.getSendDelay());
   }
+
+  Serial.printf("Battery voltage: %.2fV\n", batteryHandler.getBatteryVoltage());
 
   appDataSize = 4;
   appData[0] = 0x00;
@@ -73,6 +77,7 @@ void prepareTxFrame(uint8_t port)
  */
 void setup()
 {
+  batteryHandler.setup();
   loRaWANHandler.setup();
 }
 
