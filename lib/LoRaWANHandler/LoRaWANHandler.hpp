@@ -43,6 +43,7 @@ class LoRaWANHandler
     uint32_t magic;
     uint32_t sendDelay;
     esp_reset_reason_t resetReason;
+    bool reconfigure;
 
     void printHex(char *label, uint8_t *buffer, int length);
     void initConfig(bool showConfig);

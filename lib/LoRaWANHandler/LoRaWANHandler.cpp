@@ -121,11 +121,22 @@ void LoRaWANHandler::initConfig(bool showConfig)
   preferences.begin(PREFS_NAMESPACE, false);
   uint32_t magic = preferences.getUInt(PREFS_MAGIC, 0l);
 
-  if (magic != PREFS_MAGIC_VALUE)
+  if (magic != PREFS_MAGIC_VALUE || reconfigure)  
   {
     magic = PREFS_MAGIC_VALUE;
     appTxDutyCycle = PREFS_SLEEPTIME_DEFAULT_VALUE;
-    sendDelay = PREFS_SLEEPTIME_DEFAULT_VALUE;
+    sendDelay = PREFS_SEND_DELAY_DEFAULT_VALUE;
+
+    if ( reconfigure )
+    {
+      display.clear();
+      display.setFont(ArialMT_Plain_16);
+      display.setTextAlignment(TEXT_ALIGN_CENTER);
+      display.clear();
+      display.drawString(display.getWidth() / 2, display.getHeight() / 2, "RECONFIGURE");
+      display.display();
+      delay(2000);
+    }
 
 #ifdef CREATE_DEV_EUI_RANDOM
     for (int i = 0; i < 8; i++)
@@ -174,7 +185,8 @@ void LoRaWANHandler::initConfig(bool showConfig)
   {
     Serial.println("AppConfig loaded.");
     printf("\nMagic: %08x\n", magic);
-    printf("Sleeptime: %dms\n\n", appTxDutyCycle);
+    printf("sleep time: %dms\n\n", appTxDutyCycle);
+    printf("send delay: %dms\n\n", sendDelay);
     printHex((char *)"AppEUI/JoinEUI", appEui, 8);
     printHex((char *)"        DevEUI", devEui, 8);
     printHex((char *)"        AppKey", appKey, 16);
@@ -202,10 +214,12 @@ void LoRaWANHandler::setSendDelay(uint32_t _sendDelay)
 
 void LoRaWANHandler::setup()
 {
+  pinMode(GPIO_NUM_0, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(Vext, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   digitalWrite(Vext, LOW);
+  reconfigure = false;
   Serial.begin(115200);
 
   resetReason = esp_reset_reason();
@@ -215,6 +229,10 @@ void LoRaWANHandler::setup()
     delay(5000);
     Serial.println("\n\nLoRaWAN_APP " __DATE__ " " __TIME__);
     Serial.printf("  HELTEC_BOARD=%d\n", HELTEC_BOARD);
+    if ( digitalRead(GPIO_NUM_0) == LOW )
+    {
+      reconfigure = true;
+    }
     initConfig(true);
     digitalWrite(LED_BUILTIN, LOW);
   }
