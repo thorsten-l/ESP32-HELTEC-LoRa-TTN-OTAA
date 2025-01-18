@@ -69,10 +69,10 @@ void prepareTxFrame(uint8_t port)
   Serial.printf("Voltage Data: %d\n", voltageInt);
 
   appDataSize = 4;
-  appData[0] = 0xA5;
-  appData[1] = 0x01;
-  appData[2] = voltageInt;
-  appData[3] = crc8_le(0, appData, appDataSize - 1);
+  appData[0] = 0xA5; // preamble
+  appData[1] = 0x01; // status
+  appData[2] = voltageInt; // voltage code
+  appData[3] = crc8_le(0, appData, appDataSize - 1); // crc 8 LE
 }
 
 /**
