@@ -68,7 +68,6 @@ void prepareTxFrame(uint8_t port)
   uint8_t voltageInt = (uint8_t)voltage;
   Serial.printf("Voltage Data: %d\n", voltageInt);
 
-
   appDataSize = 4;
   appData[0] = 0xA5;
   appData[1] = 0x01;

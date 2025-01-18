@@ -221,9 +221,13 @@ void LoRaWANHandler::setSendDelay(uint32_t _sendDelay)
 void LoRaWANHandler::setup()
 {
   pinMode(GPIO_NUM_0, INPUT_PULLUP);
-  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(Vext, OUTPUT);
+
+#ifdef DEVELOPMENT_MODE
+  pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+#endif
+
   digitalWrite(Vext, LOW);
   reconfigure = false;
   Serial.begin(115200);
@@ -240,14 +244,16 @@ void LoRaWANHandler::setup()
       reconfigure = true;
     }
     initConfig(true);
-    digitalWrite(LED_BUILTIN, LOW);
   }
   else
   {
     initConfig(false);
-    delay(50);
-    digitalWrite(LED_BUILTIN, LOW);
   }
+
+#ifdef DEVELOPMENT_MODE
+  delay(50);
+  digitalWrite(LED_BUILTIN, LOW);
+#endif
 
   Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
 }
