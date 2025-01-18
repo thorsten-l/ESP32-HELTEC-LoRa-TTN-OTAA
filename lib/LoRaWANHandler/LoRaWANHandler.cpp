@@ -181,6 +181,12 @@ void LoRaWANHandler::initConfig(bool showConfig)
   }
   preferences.end();
 
+#ifdef DEVELOPMENT_MODE
+#ifdef DEVELOPMENT_SLEEPTIME_VALUE
+  setSleepTime(DEVELOPMENT_SLEEPTIME_VALUE);
+#endif
+#endif
+
   if (showConfig)
   {
     Serial.println("AppConfig loaded.");
