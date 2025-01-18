@@ -16,6 +16,7 @@
 #include <Arduino.h>
 #include <LoRaWANHandler.hpp>
 #include <BatteryHandler.hpp>
+#include <rom/crc.h>
 
 /*
 
@@ -60,13 +61,19 @@ void prepareTxFrame(uint8_t port)
     delay(loRaWANHandler.getSendDelay());
   }
 
-  Serial.printf("Battery voltage: %.2fV\n", batteryHandler.getBatteryVoltage());
+  float voltage = batteryHandler.getBatteryVoltage();
+  Serial.printf("Battery voltage: %.2fV\n", voltage);
+  voltage -= 2;
+  voltage *= 100;
+  uint8_t voltageInt = (uint8_t)voltage;
+  Serial.printf("Voltage Data: %d\n", voltageInt);
+
 
   appDataSize = 4;
-  appData[0] = 0x00;
+  appData[0] = 0xA5;
   appData[1] = 0x01;
-  appData[2] = 0x02;
-  appData[3] = 0x03;
+  appData[2] = voltageInt;
+  appData[3] = crc8_le(0, appData, appDataSize - 1);
 }
 
 /**
