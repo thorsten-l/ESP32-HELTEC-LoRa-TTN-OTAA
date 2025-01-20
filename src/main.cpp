@@ -17,6 +17,7 @@
 #include <LoRaWANHandler.hpp>
 #include <BatteryHandler.hpp>
 #include <rom/crc.h>
+#include <alog.h>
 
 /*
 
@@ -57,16 +58,16 @@ void prepareTxFrame(uint8_t port)
   // e.g. warmup delay for the sensor
   if ( loRaWANHandler.getSendDelay() > 0 )
   {
-    Serial.printf("Send delay: %dms\n", loRaWANHandler.getSendDelay());
+    ALOG_D("Send delay: %dms", loRaWANHandler.getSendDelay());
     delay(loRaWANHandler.getSendDelay());
   }
 
   float voltage = batteryHandler.getBatteryVoltage();
-  Serial.printf("Battery voltage: %.2fV\n", voltage);
+  ALOG_D("Battery voltage: %.2fV", voltage);
   voltage -= 2;
   voltage *= 100;
   uint8_t voltageInt = (uint8_t)voltage;
-  Serial.printf("Voltage Data: %d\n", voltageInt);
+  ALOG_D("Voltage Data: %d", voltageInt);
 
   appDataSize = 4;
   appData[0] = 0xA5; // preamble

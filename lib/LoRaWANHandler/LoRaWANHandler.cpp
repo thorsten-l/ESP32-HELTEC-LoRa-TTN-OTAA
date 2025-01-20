@@ -19,6 +19,7 @@
 #include <Wire.h>
 #include <HT_SSD1306Wire.h>
 #include <Preferences.h>
+#include <alog.h>
 
 #define PREFS_NAMESPACE "appconfig"
 #define PREFS_MAGIC "magic"
@@ -71,6 +72,7 @@ uint8_t confirmedNbTrials = 4;
  */
 void downLinkDataHandle(McpsIndication_t *mcpsIndication)
 {
+#if ALOG_LEVEL > 3
   Serial.printf("DOWN +REV DATA:%s,RXSIZE %d,PORT %d\r\n", mcpsIndication->RxSlot ? "RXWIN2" : "RXWIN1", mcpsIndication->BufferSize, mcpsIndication->Port);
   Serial.print("DOWN +REV DATA:");
   for (uint8_t i = 0; i < mcpsIndication->BufferSize; i++)
@@ -78,14 +80,15 @@ void downLinkDataHandle(McpsIndication_t *mcpsIndication)
     Serial.printf("%02X", mcpsIndication->Buffer[i]);
   }
   Serial.println();
+#endif
 
   if (mcpsIndication->BufferSize == 6 && mcpsIndication->Buffer[0] == 0x5A ) // 0x5A is the magic number
   {
     uint8_t command = mcpsIndication->Buffer[1];
     uint32_t value = mcpsIndication->Buffer[2] << 24 | mcpsIndication->Buffer[3] << 16 | mcpsIndication->Buffer[4] << 8 | mcpsIndication->Buffer[5];
 
-    Serial.printf("DOWN value(HEX): %08X\n", value);
-    Serial.printf("DOWN value(DEC): %d\n\n", value);
+    ALOG_D("DOWN value(HEX): %08X\n", value);
+    ALOG_D("DOWN value(DEC): %d\n\n", value);
 
     switch (command)
     {
@@ -96,7 +99,7 @@ void downLinkDataHandle(McpsIndication_t *mcpsIndication)
       loRaWANHandler.setSendDelay(value);
       break;
     default:
-      Serial.println("Error: Unknown command");
+      ALOG_D("Error: Unknown command");
       break;
     }
   }
@@ -189,14 +192,16 @@ void LoRaWANHandler::initConfig(bool showConfig)
 
   if (showConfig)
   {
-    Serial.println("AppConfig loaded.");
-    printf("\nMagic: %08x\n", magic);
-    printf("sleep time: %dms\n\n", appTxDutyCycle);
-    printf("send delay: %dms\n\n", sendDelay);
+    ALOG_I("AppConfig loaded.");
+    ALOG_NL();
+    ALOG_D("Magic: %08x", magic);
+    ALOG_D("sleep time: %dms", appTxDutyCycle);
+    ALOG_D("send delay: %dms", sendDelay);
+    ALOG_NL();
     printHex((char *)"AppEUI/JoinEUI", appEui, 8);
     printHex((char *)"        DevEUI", devEui, 8);
     printHex((char *)"        AppKey", appKey, 16);
-    Serial.println();
+    ALOG_NL();
   }
 }
 
@@ -229,16 +234,25 @@ void LoRaWANHandler::setup()
 #endif
 
   digitalWrite(Vext, LOW);
-  reconfigure = false;
   Serial.begin(115200);
-
+  reconfigure = false;
   resetReason = esp_reset_reason();
+
   if (resetReason == ESP_RST_POWERON || resetReason == ESP_RST_EXT)
   {
     LoRaWAN.displayMcuInit();
     delay(5000);
-    Serial.println("\n\nLoRaWAN_APP " __DATE__ " " __TIME__);
-    Serial.printf("  HELTEC_BOARD=%d\n", HELTEC_BOARD);
+    Serial.println("\n\n\nLoRaWAN - Version " APP_VERSION );
+    Serial.println("Build time : " __DATE__ " " __TIME__);
+    Serial.printf("\nHELTEC board    : %d\n", HELTEC_BOARD);
+
+    Serial.printf("SDK Version     : %s\n", ESP.getSdkVersion());
+    Serial.printf("PIO Environment : %s\n", PIOENV);
+    Serial.printf("PIO Platform    : %s\n", PIOPLATFORM);
+    Serial.printf("PIO Framework   : %s\n", PIOFRAMEWORK);
+    Serial.printf("Arduino Board   : %s\n", ARDUINO_BOARD);
+    Serial.println();
+  
     if ( digitalRead(GPIO_NUM_0) == LOW )
     {
       reconfigure = true;

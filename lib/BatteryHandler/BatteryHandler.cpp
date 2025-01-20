@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <Arduino.h>
+#include <alog.h>
 #include "BatteryHandler.hpp"
 
 #ifdef HELTEC_WIFI_LORA_32_V2
@@ -49,7 +50,7 @@ void BatteryHandler::setup()
 float BatteryHandler::getBatteryVoltage()
 {
   int adcValue = analogRead(ADC_Input);
-  Serial.printf("ADC value: %d\n", adcValue);
+  ALOG_D("ADC value: %d", adcValue);
   return adcValue * ADC_atenuation_muliplier / 4096.0 / ADC_voltage_divider;
   //     =value==   =db==                    =12 bits= =resistors voltage divider=
 }
