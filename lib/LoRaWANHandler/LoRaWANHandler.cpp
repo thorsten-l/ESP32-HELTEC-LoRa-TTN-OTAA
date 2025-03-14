@@ -82,7 +82,7 @@ void downLinkDataHandle(McpsIndication_t *mcpsIndication)
   Serial.println();
 #endif
 
-  if (mcpsIndication->BufferSize == 6 && mcpsIndication->Buffer[0] == 0x5A ) // 0x5A is the magic number
+  if (mcpsIndication->BufferSize == 6 && mcpsIndication->Buffer[0] == 0xA5 ) // 0xA5 is the magic number
   {
     uint8_t command = mcpsIndication->Buffer[1];
     uint32_t value = mcpsIndication->Buffer[2] << 24 | mcpsIndication->Buffer[3] << 16 | mcpsIndication->Buffer[4] << 8 | mcpsIndication->Buffer[5];
@@ -114,6 +114,50 @@ void LoRaWANHandler::printHex(char *label, uint8_t *buffer, int length)
   for (int i = 0; i < length; i++)
   {
     Serial.printf("%02X", buffer[i]);
+  }
+  Serial.println();
+}
+
+void printResetReason(esp_reset_reason_t reason) {
+  Serial.printf("\n\nReset reason: (%d) ", reason);
+
+  switch (reason) {
+    case ESP_RST_UNKNOWN:
+      Serial.println("Unknown reset");
+      break;
+    case ESP_RST_POWERON:
+      Serial.println("Power-On Reset");
+      break;
+    case ESP_RST_EXT:
+      Serial.println("External Reset (via Reset Pin)");
+      break;
+    case ESP_RST_SW:
+      Serial.println("Software Reset");
+      break;
+    case ESP_RST_PANIC:
+      Serial.println("Panic (Exception) Reset");
+      break;
+    case ESP_RST_INT_WDT:
+      Serial.println("Interrupt Watchdog Reset");
+      break;
+    case ESP_RST_TASK_WDT:
+      Serial.println("Task Watchdog Reset");
+      break;
+    case ESP_RST_WDT:
+      Serial.println("Other Watchdog Reset");
+      break;
+    case ESP_RST_DEEPSLEEP:
+      Serial.println("Reset caused by Deep-Sleep Wake-up");
+      break;
+    case ESP_RST_BROWNOUT:
+      Serial.println("Brownout Reset");
+      break;
+    case ESP_RST_SDIO:
+      Serial.println("SDIO Reset");
+      break;
+    default:
+      Serial.println("Unspecified reset reason");
+      break;
   }
   Serial.println();
 }
@@ -176,6 +220,8 @@ void LoRaWANHandler::initConfig(bool showConfig)
   }
   else
   {
+    // preferences.putUInt(PREFS_SLEEPTIME, 60000);
+    // preferences.putUInt(PREFS_SLEEPTIME, PREFS_SLEEPTIME_DEFAULT_VALUE);
     appTxDutyCycle = preferences.getUInt(PREFS_SLEEPTIME, PREFS_SLEEPTIME_DEFAULT_VALUE);
     sendDelay = preferences.getUInt(PREFS_SEND_DELAY, PREFS_SEND_DELAY_DEFAULT_VALUE);
     preferences.getBytes(PREFS_APP_EUI, appEui, 8);
@@ -225,18 +271,22 @@ void LoRaWANHandler::setSendDelay(uint32_t _sendDelay)
 
 void LoRaWANHandler::setup()
 {
-  pinMode(GPIO_NUM_0, INPUT_PULLUP);
   pinMode(Vext, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(GPIO_NUM_0, INPUT_PULLUP);
 
 #ifdef DEVELOPMENT_MODE
-  pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+#else
+  digitalWrite(LED_BUILTIN, LOW);
 #endif
 
   digitalWrite(Vext, LOW);
   Serial.begin(115200);
   reconfigure = false;
   resetReason = esp_reset_reason();
+
+  printResetReason(resetReason);
 
   if (resetReason == ESP_RST_POWERON || resetReason == ESP_RST_EXT)
   {

@@ -43,6 +43,18 @@ They are permanently stored in the device's non-volatile memory.
 
 */
 
+typedef struct payload
+{
+  uint8_t preamble;
+  uint8_t status;
+  uint8_t voltage;
+  uint8_t reset_reason;
+  uint32_t bootcounter;
+  uint8_t crc;
+} payload_t;
+
+static esp_reset_reason_t reset_reason;
+RTC_IRAM_ATTR static uint32_t bootcounter = 0;
 
 /**
  * @brief Prepares the transmission frame for LoRaWAN.
@@ -52,7 +64,6 @@ They are permanently stored in the device's non-volatile memory.
  *
  * @param port The port number on which to send the data.
  */
-// uint8_t appData[255]
 void prepareTxFrame(uint8_t port)
 {
   // e.g. warmup delay for the sensor
@@ -69,11 +80,20 @@ void prepareTxFrame(uint8_t port)
   uint8_t voltageInt = (uint8_t)voltage;
   ALOG_D("Voltage Data: %d", voltageInt);
 
-  appDataSize = 4;
-  appData[0] = 0xA5; // preamble
-  appData[1] = 0x01; // status
-  appData[2] = voltageInt; // voltage code
-  appData[3] = crc8_le(0, appData, appDataSize - 1); // crc 8 LE
+  bootcounter++;
+  ALOG_D("Bootcounter: %lu", bootcounter);
+  ALOG_D("Reset reason: %d", reset_reason);
+  
+  appDataSize = sizeof(payload);
+  payload_t *payload = (payload_t *)appData;
+  payload->preamble = 0xA5;
+  payload->status = 0x01;
+  payload->voltage = voltageInt;
+  payload->reset_reason = reset_reason;
+  payload->bootcounter = bootcounter;
+  payload->crc = crc8_le(0, appData, appDataSize - 1);
+  ALOG_D("Payload size: %d", appDataSize);
+  ALOG_D("Payload prepared.");
 }
 
 /**
@@ -84,6 +104,11 @@ void prepareTxFrame(uint8_t port)
  */
 void setup()
 {
+  reset_reason = esp_reset_reason();
+  if( reset_reason == ESP_RST_POWERON )
+  {
+    bootcounter = 0;
+  }
   batteryHandler.setup();
   loRaWANHandler.setup();
 }
