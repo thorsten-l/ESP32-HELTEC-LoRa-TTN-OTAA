@@ -220,8 +220,8 @@ void LoRaWANHandler::initConfig(bool showConfig)
   }
   else
   {
-    // preferences.putUInt(PREFS_SLEEPTIME, 60000);
-    // preferences.putUInt(PREFS_SLEEPTIME, PREFS_SLEEPTIME_DEFAULT_VALUE);
+//    preferences.putUInt(PREFS_SLEEPTIME, 60000);
+//    preferences.putUInt(PREFS_SLEEPTIME, PREFS_SLEEPTIME_DEFAULT_VALUE);
     appTxDutyCycle = preferences.getUInt(PREFS_SLEEPTIME, PREFS_SLEEPTIME_DEFAULT_VALUE);
     sendDelay = preferences.getUInt(PREFS_SEND_DELAY, PREFS_SEND_DELAY_DEFAULT_VALUE);
     preferences.getBytes(PREFS_APP_EUI, appEui, 8);
@@ -272,6 +272,7 @@ void LoRaWANHandler::setSendDelay(uint32_t _sendDelay)
 void LoRaWANHandler::setup()
 {
   pinMode(Vext, OUTPUT);
+  digitalWrite(Vext, HIGH);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(GPIO_NUM_0, INPUT_PULLUP);
 
@@ -281,7 +282,6 @@ void LoRaWANHandler::setup()
   digitalWrite(LED_BUILTIN, LOW);
 #endif
 
-  digitalWrite(Vext, LOW);
   Serial.begin(115200);
   reconfigure = false;
   resetReason = esp_reset_reason();

@@ -18,17 +18,18 @@
 #include <BatteryHandler.hpp>
 #include <rom/crc.h>
 #include <alog.h>
+#include <soc/rtc_cntl_reg.h>
 
 /*
 
 Schedule downlink (FPort 1)
 
 Payload Type: Bytes
-  Byte 0: 0x5A (magic number) 
-   - Why 0x5A? 0x5A is a nice binary number, '0101 1010', 
+  Byte 0: 0x5A (magic number)
+   - Why 0x5A? 0x5A is a nice binary number, '0101 1010',
      and it's easy to recognize.
 
-  Byte 1: Command 
+  Byte 1: Command
   Byte 2-5: Value
 
 Commands:
@@ -50,11 +51,13 @@ typedef struct payload
   uint8_t voltage;
   uint8_t reset_reason;
   uint32_t bootcounter;
+  uint8_t last_reset_reason;
   uint8_t crc;
 } payload_t;
 
 static esp_reset_reason_t reset_reason;
 RTC_IRAM_ATTR static uint32_t bootcounter = 0;
+RTC_NOINIT_ATTR esp_reset_reason_t last_reset_reason;
 
 /**
  * @brief Prepares the transmission frame for LoRaWAN.
@@ -67,12 +70,13 @@ RTC_IRAM_ATTR static uint32_t bootcounter = 0;
 void prepareTxFrame(uint8_t port)
 {
   // e.g. warmup delay for the sensor
-  if ( loRaWANHandler.getSendDelay() > 0 )
+  if (loRaWANHandler.getSendDelay() > 0)
   {
     ALOG_D("Send delay: %dms", loRaWANHandler.getSendDelay());
     delay(loRaWANHandler.getSendDelay());
   }
-
+  
+  batteryHandler.setup();
   float voltage = batteryHandler.getBatteryVoltage();
   ALOG_D("Battery voltage: %.2fV", voltage);
   voltage -= 2;
@@ -83,7 +87,8 @@ void prepareTxFrame(uint8_t port)
   bootcounter++;
   ALOG_D("Bootcounter: %lu", bootcounter);
   ALOG_D("Reset reason: %d", reset_reason);
-  
+  ALOG_D("Last reset reason: %d", 0xff & last_reset_reason);
+
   appDataSize = sizeof(payload);
   payload_t *payload = (payload_t *)appData;
   payload->preamble = 0xA5;
@@ -91,9 +96,16 @@ void prepareTxFrame(uint8_t port)
   payload->voltage = voltageInt;
   payload->reset_reason = reset_reason;
   payload->bootcounter = bootcounter;
+  payload->last_reset_reason = last_reset_reason;
   payload->crc = crc8_le(0, appData, appDataSize - 1);
+  last_reset_reason = reset_reason;
   ALOG_D("Payload size: %d", appDataSize);
   ALOG_D("Payload prepared.");
+}
+
+void disableBrownoutDetection() {
+  // Deaktiviert die Brownout-Detection, indem der entsprechende Bit im RTC_CNTL_OPTIONS0_REG gelöscht wird.
+  REG_CLR_BIT(RTC_CNTL_OPTIONS0_REG, RTC_CNTL_BROWN_OUT_ENA);
 }
 
 /**
@@ -104,12 +116,12 @@ void prepareTxFrame(uint8_t port)
  */
 void setup()
 {
+  disableBrownoutDetection();
   reset_reason = esp_reset_reason();
-  if( reset_reason == ESP_RST_POWERON )
+  if (reset_reason == ESP_RST_POWERON)
   {
     bootcounter = 0;
   }
-  batteryHandler.setup();
   loRaWANHandler.setup();
 }
 
